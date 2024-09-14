@@ -104,6 +104,17 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_RESET); //here
+    HAL_Delay(1000);
+    
+    HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_SET); //here
+    HAL_Delay(2000);
+
+    HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_RESET); //here
+    HAL_Delay(3000);
   }
   /* USER CODE END 3 */
 }
