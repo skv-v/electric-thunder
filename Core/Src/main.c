@@ -54,7 +54,8 @@ static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void RunSolderFeed(void);
+void StopSolderFeed(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -100,21 +101,14 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {/
+  {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_RESET); //here
-    HAL_Delay(1000);
-    
-    HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_SET); //here
-    HAL_Delay(2000);
-
-    HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_RESET); //here
-    HAL_Delay(3000);
+    if(HAL_GPIO_ReadPin(User_Button_GPIO_Port,User_Button_Pin) == GPIO_PIN_RESET)
+    {
+      RunSolderFeed();
+    }
   }
   /* USER CODE END 3 */
 }
@@ -185,12 +179,12 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 63;
+  htim1.Init.Prescaler = 6400;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 999;
+  htim1.Init.Period = 30000;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
-  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
   {
     Error_Handler();
@@ -317,6 +311,12 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin : User_Button_Pin */
+  GPIO_InitStruct.Pin = User_Button_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(User_Button_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : LED_GREEN_Pin */
   GPIO_InitStruct.Pin = LED_GREEN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -343,6 +343,35 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+/**
+  * @brief Callback function from timer1
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(htim);
+
+  HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_RESET);  
+  HAL_TIM_Base_Stop_IT(&htim1);
+}
+
+void RunSolderFeed(void)
+{
+  HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_SET);  
+  HAL_TIM_Base_Start_IT(&htim1);
+  return ;
+}
+
+void StopSolderFeed(void)
+{
+  HAL_GPIO_WritePin(FeedMotor_In1_GPIO_Port, FeedMotor_In1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(FeedMotor_In2_GPIO_Port, FeedMotor_In2_Pin, GPIO_PIN_RESET);
+  HAL_TIM_Base_Stop_IT(&htim1);
+}
 
 /* USER CODE END 4 */
 
